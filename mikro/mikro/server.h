@@ -9,7 +9,6 @@ typedef struct {
     PyObject *port;
 } ServerInfo;
 
-void server_run(ServerInfo*);
-
+void server_run(ServerInfo *);
 
 #endif

@@ -1,8 +1,9 @@
 #include <arpa/inet.h>
-#include <fcntl.h>
 #include <ev.h>
+#include <fcntl.h>
 
 #include "server.h"
+#include "common.h"
 
 #define READ_BUFFER_SIZE 64 * 1024
 #define GIL_LOCK(n) PyGILState_STATE _gilstate_##n = PyGILState_Ensure()
@@ -18,29 +19,31 @@ typedef struct {
     ev_io accept_watcher;
 } ThreadInfo;
 
-
 void server_run(ServerInfo *server_info) {
     struct ev_loop *mainloop = ev_loop_new(EVFLAG_AUTO);
     ThreadInfo thread_info;
     thread_info.server_info = server_info;
 
     ev_set_userdata(mainloop, &thread_info);
-    ev_io_init(&thread_info.accept_watcher, ev_io_accept, server_info->sockfd, EV_READ);
+    ev_io_init(&thread_info.accept_watcher, ev_io_accept, server_info->sockfd,
+               EV_READ);
     ev_io_start(mainloop, &thread_info.accept_watcher);
 
     Py_BEGIN_ALLOW_THREADS
+    DBG("mikro is running at: %s:%d", PyObj_ToStr(server_info->host), PyObj_ToLong(server_info->port));
     ev_run(mainloop, 0);
     ev_loop_destroy(mainloop);
     Py_END_ALLOW_THREADS
 }
 
-static void ev_io_accept(struct ev_loop *mainloop, ev_io *watcher, const int revents) {
+static void ev_io_accept(struct ev_loop *mainloop, ev_io *watcher,
+                         const int revents) {
     int client_fd;
     struct sockaddr_in sockaddr;
     socklen_t addrlen;
 
     addrlen = sizeof(struct sockaddr_in);
-    client_fd = accept(watcher->fd, (struct sockaddr*)&sockaddr, &addrlen);
+    client_fd = accept(watcher->fd, (struct sockaddr *)&sockaddr, &addrlen);
     if (client_fd < 0) {
         return;
     }
@@ -55,7 +58,8 @@ static void ev_io_accept(struct ev_loop *mainloop, ev_io *watcher, const int rev
     ev_io_start(mainloop, read_watcher);
 }
 
-static void ev_io_read(struct ev_loop *mainloop, ev_io *watcher, const int revents) {
+static void ev_io_read(struct ev_loop *mainloop, ev_io *watcher,
+                       const int revents) {
     char buf[READ_BUFFER_SIZE];
     ssize_t read;
 
@@ -63,13 +67,13 @@ static void ev_io_read(struct ev_loop *mainloop, ev_io *watcher, const int reven
 
     if (read < 0) {
         return;
-    } if (read == 0) {
+    }
+    if (read == 0) {
         ev_io_stop(mainloop, watcher);
         close(watcher->fd);
         free(watcher);
         return;
     } else {
-
     }
 
     send(watcher->fd, buf, read, 0);

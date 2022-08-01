@@ -15,7 +15,7 @@ COMPILE_ARGS = [
 
 mikro_extension = Extension(
     name='_mikro',
-    libraries=['libev'],
+    libraries=['ev'],
     include_dirs=['/usr/include/libev'],
     sources=SOURCE_FILES,
     extra_compile_args=COMPILE_ARGS

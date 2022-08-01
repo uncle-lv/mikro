@@ -35,7 +35,8 @@ static PyObject *run(PyObject *self, PyObject *args) {
 
 static PyMethodDef Mikro_FunctoinTable[] = {
     {"run", (PyCFunction)run, METH_VARARGS, NULL},
-    {NULL, NULL, 0, NULL}};
+    {NULL, NULL, 0, NULL}
+};
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
